@@ -97,7 +97,6 @@ app.get('/', (req, res) => {
 });
 // API 라우트들을 여기에 추가
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
 // app.use('/api/rooms', roomRoutes);
 // 404 에러 핸들링
 app.use((req, res, next) => {

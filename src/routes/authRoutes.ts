@@ -1,6 +1,6 @@
 import express from 'express';
 import { login, register } from '../controllers/authController.js';
-import { requireAuth } from "../middleware/authMiddleware.js";
+import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -124,7 +124,7 @@ router.post('/register', register);
  *       401:
  *         description: 인증 실패 (토큰 누락 또는 유효하지 않음)
  */
-router.get("/me", requireAuth, (req, res) => {
+router.get('/me', requireAuth, (req, res) => {
   res.json({
     user: req.user, // 토큰에서 추출된 유저 정보
   });

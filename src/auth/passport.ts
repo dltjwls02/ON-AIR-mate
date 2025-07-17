@@ -18,7 +18,7 @@ passport.use(
   new JwtStrategy(opts, (jwt_payload: JwtPayload, done) => {
     try {
       const user = { id: jwt_payload.id, nickname: jwt_payload.nickname };
-      console.log("user:",user.id," ,",user.nickname);
+      console.log('user:', user.id, ' ,', user.nickname);
       return done(null, user);
     } catch (error) {
       return done(error, false);

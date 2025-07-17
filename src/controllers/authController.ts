@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
-import { generateAccessToken,generateRefreshToken } from '../auth/jwt.js';
+import { generateAccessToken, generateRefreshToken } from '../auth/jwt.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { createUser, findUserByNickname, findUserByLoginId } from '../services/authServices.js';
 
@@ -38,8 +38,8 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     const refreshToken = generateRefreshToken({ id: user.loginId, nickname: user.nickname });
 
     sendSuccess(res, {
-        accessToken,
-        refreshToken,
+      accessToken,
+      refreshToken,
       user: {
         id: user.userId,
         loginId: user.loginId,

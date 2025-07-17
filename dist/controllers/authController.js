@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import bcrypt from 'bcryptjs';
-import { generateToken } from '../auth/jwt.js';
+import { generateAccessToken, generateRefreshToken } from '../auth/jwt.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { createUser, findUserByNickname, findUserByLoginId } from '../services/authServices.js';
 export const register = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -37,15 +37,18 @@ export const login = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         const isMatch = yield bcrypt.compare(password, user.password);
         if (!isMatch)
             return sendError(res, '아이디 또는 비밀번호가 일치하지 않습니다.', 401);
-        const token = generateToken({ id: user.loginId, nickname: user.nickname });
+        //const token = generateToken({ id: user.loginId, nickname: user.nickname });
+        const accessToken = generateAccessToken({ id: user.loginId, nickname: user.nickname });
+        const refreshToken = generateRefreshToken({ id: user.loginId, nickname: user.nickname });
         sendSuccess(res, {
+            accessToken,
+            refreshToken,
             user: {
                 id: user.userId,
                 loginId: user.loginId,
                 nickname: user.nickname,
                 popularity: user.popularity,
             },
-            token,
         });
     }
     catch (err) {

@@ -1,5 +1,6 @@
 import express from 'express';
 import { login, register } from '../controllers/authController.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
 const router = express.Router();
 /**
  * @swagger
@@ -93,4 +94,35 @@ router.post('/login', login);
  *         description: 회원가입 실패 (중복 등)
  */
 router.post('/register', register);
+/**
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: 헤더 토큰으로 로그인 유저 정보 반환
+ *     tags:
+ *       - User
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: JWT 토큰에 포함된 유저 정보 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   example:
+ *                     id: 123
+ *                     email: user@example.com
+ *                     role: user
+ *       401:
+ *         description: 인증 실패 (토큰 누락 또는 유효하지 않음)
+ */
+router.get('/me', requireAuth, (req, res) => {
+    res.json({
+        user: req.user, // 토큰에서 추출된 유저 정보
+    });
+});
 export default router;
