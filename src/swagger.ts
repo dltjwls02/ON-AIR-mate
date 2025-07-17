@@ -13,6 +13,20 @@ const options: swaggerJsdoc.Options = {
         url: 'http://localhost:3000', // 요청 URL
       },
     ],
+     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   apis: ['./src/routes/*.ts', './src/app.ts'], // API 명세가 작성된 파일 경로
 };

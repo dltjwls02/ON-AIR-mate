@@ -8,6 +8,7 @@ import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
 import passport from './auth/passport.js';
 import { requireAuth } from './middleware/authMiddleware.js';
+import authRoutes from './routes/authRoutes.js';
 
 dotenv.config();
 
@@ -111,8 +112,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // API 라우트들을 여기에 추가
-// app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
 // app.use('/api/rooms', roomRoutes);
 
 // 404 에러 핸들링
