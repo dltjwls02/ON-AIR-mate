@@ -7,7 +7,8 @@ import { sendSuccess } from './utils/response.js';
 import passport from './auth/passport.js';
 import { requireAuth } from './middleware/authMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
-
+import swaggerUi from 'swagger-ui-express';
+import { specs } from './swagger.js';
 dotenv.config();
 
 const app: Express = express();
@@ -67,6 +68,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.get('/protected', requireAuth, (req: Request, res: Response) => {
   sendSuccess(res, { message: '인증된 사용자만 접근 가능' });
 });
+
+// API 문서 (Swagger)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // 헬스 체크 엔드포인트
 app.get('/health', (req: Request, res: Response) => {
