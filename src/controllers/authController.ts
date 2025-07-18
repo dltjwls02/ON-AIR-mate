@@ -4,7 +4,6 @@ import { generateAccessToken, generateRefreshToken } from '../auth/jwt';
 import { sendSuccess, sendError } from '../utils/response';
 import { createUser, findUserByNickname, findUserByLoginId } from '../services/authServices';
 
-
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { loginId, password, nickname, profileImage } = req.body;
