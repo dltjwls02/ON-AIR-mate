@@ -9,6 +9,8 @@ import { requireAuth } from './middleware/authMiddleware';
 import authRoutes from './routes/authRoutes';
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger';
+
+
 dotenv.config();
 
 const app: Express = express();
