@@ -14,6 +14,7 @@ lerna-debug.log*
 .env.production.local
 *.env
 
+
 # Build outputs
 dist/
 build/
@@ -29,6 +30,7 @@ out/
 *.tsbuildinfo
 tsconfig.tsbuildinfo
 
+dist/
 # Prisma
 /src/generated/
 prisma/migrations/dev/
