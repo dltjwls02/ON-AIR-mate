@@ -15,7 +15,7 @@ dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
-const address = process.env.ADDRESS ||'https://54.180.254.48:3000';
+const address = process.env.ADDRESS || 'https://54.180.254.48:3000';
 
 // CORS 설정
 const corsOptions = {
