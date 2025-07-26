@@ -34,6 +34,7 @@ const corsOptions = {
     const allowedOrigins = [
       //수정1
       address,
+      'http://54.180.254.48:3000',
       'https://54.180.254.48:3000',
       //'https://your-frontend-domain.com', // 실제 프론트엔드 도메인으로 변경
       //'https://onairmate.vercel.app', // 예시 도메인
