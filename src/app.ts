@@ -32,6 +32,7 @@ const corsOptions = {
 
     // 프로덕션 환경에서는 허용된 도메인만
     const allowedOrigins = [
+      //수정
       address,
       'https://54.180.254.48:3000',
       //'https://your-frontend-domain.com', // 실제 프론트엔드 도메인으로 변경
