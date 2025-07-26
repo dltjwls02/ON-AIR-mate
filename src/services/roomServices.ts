@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, RoomParticipant } from '@prisma/client';
 import { Participant, createNewRoom } from '../dtos/roomDto.js';
 import { findUserById } from './authServices';
-import { RoomParticipant } from '../generated/prisma/index.js';
 import { error } from 'console';
 
 const prisma = new PrismaClient();
