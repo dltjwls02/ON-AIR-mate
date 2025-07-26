@@ -15,7 +15,7 @@ dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
-const address = process.env.ADDRESS;
+const address = process.env.ADDRESS ||'https://54.180.254.48:3000';
 
 // CORS 설정
 const corsOptions = {
@@ -34,7 +34,6 @@ const corsOptions = {
     const allowedOrigins = [
       //수정1
       address,
-      'https://54.180.254.48:3000',
       //'https://your-frontend-domain.com', // 실제 프론트엔드 도메인으로 변경
       //'https://onairmate.vercel.app', // 예시 도메인
       'http://localhost:3000', // 로컬 개발용
