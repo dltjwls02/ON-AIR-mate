@@ -9,14 +9,12 @@ const prisma = new PrismaClient();
  * room 채팅
  */
 //room 메시지 조회
-export const getRoomMessages = async (roomId: number, limit: number = 30, before?: Date) => {
+export const getRoomMessages = async (roomId: number) => {
   const messages = await prisma.roomMessage.findMany({
     where: {
       roomId,
-      ...(before && { createdAt: { lt: before } }),
     },
     orderBy: { createdAt: 'desc' },
-    take: limit,
     include: {
       user: {
         select: {

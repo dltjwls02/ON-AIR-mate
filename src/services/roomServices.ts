@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { Participant, createNewRoom } from '../dtos/roomDto.js';
 import { findUserById } from './authServices';
 import { RoomParticipant } from '../generated/prisma/index.js';
-import { connect } from 'http2';
+import { error } from 'console';
 
 const prisma = new PrismaClient();
 
@@ -23,9 +23,9 @@ export const createRoom = async (data: createNewRoom) => {
 
   //video db 검증
   const video = await prisma.youtubeVideo.findUnique({
-    where:{videoId:data.videoId}
-  })
-  if(video === null){
+    where: { videoId: data.videoId },
+  });
+  if (video === null) {
     throw new Error('해당 유튜브 동영상이 존재하지 않습니다.');
   }
 
@@ -35,13 +35,13 @@ export const createRoom = async (data: createNewRoom) => {
       roomName: data.roomName,
       isPublic: data.isPublic ?? true,
       maxParticipants: data.maxParticipants ?? 6,
-      video:{
-        connect:{videoId: video.videoId}
+      video: {
+        connect: { videoId: video.videoId },
       },
       host: {
-      connect: { userId: data.hostId }, // ← 이 부분 추가
+        connect: { userId: data.hostId }, // ← 이 부분 추가
+      },
     },
-  },
   });
 
   await prisma.roomParticipant.create({
@@ -121,7 +121,10 @@ export const addParticipant = async (roomId: number, participant: Participant) =
   const room = await prisma.room.findUnique({
     where: { roomId },
   });
-  if (!room) return null;
+  if (!room) {
+    console.log('존재하지 않은 room입니다.');
+    throw error('존재하지 않은 room입니다.');
+  }
 
   //roomParicipant DB 등록
   await prisma.roomParticipant.create({

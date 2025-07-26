@@ -16,36 +16,36 @@ export default function chatHandler(io: Server, socket: Socket) {
    */
 
   //새로운 방 입장
-  socket.on('joinRoom', async (data: { roomId: string; nickname: string }) => {
+  socket.on('joinRoom', async (data: { roomId: number; nickname: string }) => {
     const { roomId, nickname } = data;
     if (!roomId || !nickname) {
       socket.emit('error', 'roomId and nickname required');
       return;
     }
     //입장
-    socket.join(roomId);
+    socket.join(roomId.toString());
     console.log('!!entered room:', roomId);
 
     //redis
-    await joinRoom(Number(roomId), Number(userId), socket.id);
+    await joinRoom(roomId, Number(userId), socket.id);
 
-    io.to(roomId).emit('userJoined', {
+    io.to(roomId.toString()).emit('userJoined', {
       user: nickname,
-      count: io.sockets.adapter.rooms.get(roomId)?.size || 0,
+      count: io.sockets.adapter.rooms.get(roomId.toString())?.size || 0,
     });
     console.log(`${nickname}님이 ${roomId} 방에 입장`);
   });
 
   //기존 방 입장
-  socket.on('enterRoom', async ({ roomId, nickname }) => {
-    console.log('user: ', nickname, ', roomId:', roomId);
+  socket.on('enterRoom', async (data: { roomId: number; nickname: string }) => {
+    const { roomId, nickname } = data;
     if (!nickname || !roomId) throw new Error('Required fields are missing.');
 
     const isIn = await isParticipant(Number(roomId), Number(userId));
     if (!isIn) throw new Error('Not participant in this room');
 
     //해당 소캣이 room에 join함
-    socket.join(roomId);
+    socket.join(roomId.toString());
     console.log('!!entered room:', roomId);
     //redis
     await enterRoom(Number(userId), socket.id);
@@ -54,29 +54,29 @@ export default function chatHandler(io: Server, socket: Socket) {
   // 방 메시지 보내기
   socket.on(
     'sendRoomMessage',
-    async (data: { roomId: string; nickname: string; content: string; messageType: string }) => {
+    async (data: { roomId: number; nickname: string; content: string; messageType: string }) => {
       const { roomId, nickname, content, messageType } = data;
       if (!roomId || !nickname || !content || !messageType) return;
 
-      const isIn = await isParticipant(Number(roomId), Number(userId));
+      const isIn = await isParticipant(roomId, Number(userId));
       if (!isIn) throw new Error('Not participant in this room');
 
       //db 저장
       const message = await saveRoomMessage({
-        roomId: Number(roomId),
+        roomId: roomId,
         userId: Number(userId),
         content,
         messageType: messageType as MessageType,
       });
 
       //메시지 전송
-      io.to(roomId).emit('receiveMessage', { data: message });
+      io.to(roomId.toString()).emit('receiveRoomMessage', { data: message });
       console.log(`${message}`);
     },
   );
 
   //room 퇴장
-  socket.on('leaveRoom', async ({ roomId }) => {
+  socket.on('leaveRoom', async (roomId: number) => {
     try {
       await leaveRoom(roomId, userId);
       socket.leave(roomId.toString());
@@ -135,19 +135,16 @@ export default function chatHandler(io: Server, socket: Socket) {
     },
   );
 
-  socket.on('disconnect', () => {
-    console.log('소켓 연결 해제:', socket.id);
-  });
-
   //dm방 삭제 - 친구 해제
-  socket.on('leaveRoom', async ({ userId1, userId2 }) => {
+  socket.on('noFriend', async (data: { userId1: number; userId2: number }) => {
     try {
+      const { userId1, userId2 } = data;
       const dmRoom = await getOrCreateChatRoom(userId1, userId2);
       const dmId = dmRoom.chatId;
       socket.leave(dmId.toString());
       console.log(`친구 방 삭제 - ${dmId} 삭제 : ${userId1}, ${userId2}`);
     } catch (err) {
-      console.error('leaveRoom error:', err); // 서버 로그 확인용
+      console.error('noFriend error:', err); // 서버 로그 확인용
       socket.emit('error', { message: 'Failed to leave room' });
     }
   });

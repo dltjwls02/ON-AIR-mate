@@ -19,6 +19,8 @@ const router = express.Router();
  *     description: 새로운 방을 생성합니다.
  *     tags:
  *       - Room
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -86,8 +88,66 @@ const router = express.Router();
  *                   example: 방 생성에 오류가 발생했습니다
  */
 router.post('/', requireAuth, createRoom);
-// 소켓 통신으로
+
+// 소켓 통신으로 할거임 이거는 단순 db 및 라우팅 처리
+/**
+ * @swagger
+ * /api/rooms/{roomId}/join:
+ *   post:
+ *     summary: 채팅방 참가
+ *     description: 인증된 사용자가 특정 채팅방에 참가합니다.
+ *     tags:
+ *       - Room
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 참가할 채팅방의 ID
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         message:
+ *            type: string
+ *            example: 채팅방 참가 성공하였습니다.
+ *         description: 채팅방 참가 성공
+ *       401:
+ *         description: 인증 실패
+ *       404:
+ *         description: 채팅방을 찾을 수 없음
+ */
 router.post('/:roomId/join', requireAuth, joinRoom);
+
+/**
+ * @swagger
+ * /api/rooms/{roomId}/leave:
+ *   post:
+ *     summary: 채팅방 나가기
+ *     description: 인증된 사용자가 특정 채팅방에서 나갑니다.
+ *     tags:
+ *       - Room
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 나갈 채팅방의 ID
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         message:
+ *            type: string
+ *            example: 채팅방 나가기 성공하였습니다.
+ *         description: 채팅방 나가기 성공
+ *       401:
+ *         description: 인증 실패
+ *       404:
+ *         description: 채팅방을 찾을 수 없음
+ */
 router.post('/:roomId/leave', requireAuth, leaveRoom);
 
 /**
@@ -98,7 +158,7 @@ router.post('/:roomId/leave', requireAuth, leaveRoom);
  *     tags:
  *       - Room
  *     security:
- *       - token: []
+ *       - bearerAuth: []
  *     parameters:
  *       - name: roomId
  *         in: path
@@ -119,7 +179,26 @@ router.post('/:roomId/leave', requireAuth, leaveRoom);
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/User'
+ *                     type: object
+ *                     properties:
+ *                       userId:
+ *                         type: integer
+ *                         example: 1
+ *                       nickname:
+ *                         type: string
+ *                         example: "user123"
+ *                       profileImage:
+ *                         type: string
+ *                         format: url
+ *                         example: "https://example.com/image.png"
+ *                       popularity:
+ *                         type: integer
+ *                         example: 1
+ *                       isHost:
+ *                         type: boolean
+ *                       joinedAt:
+ *                         type: string
+ *                         format: date-time
  */
 router.get('/:roomId/participants', requireAuth, getRoomParticipants);
 
@@ -131,7 +210,7 @@ router.get('/:roomId/participants', requireAuth, getRoomParticipants);
  *     tags:
  *       - Room
  *     security:
- *       - accessToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - name: roomId
  *         in: path
@@ -154,7 +233,7 @@ router.get('/:roomId/participants', requireAuth, getRoomParticipants);
  *                 description: 메시지 내용
  *               messageType:
  *                 type: string
- *                 enum: [text, image, file]
+ *                 enum: [general, roomInvite, collectionShare]
  *                 description: 메시지 타입
  *     responses:
  *       201:
@@ -167,7 +246,12 @@ router.get('/:roomId/participants', requireAuth, getRoomParticipants);
  *                 success:
  *                   type: boolean
  *                 data:
- *                   $ref: '#/components/schemas/Message'
+ *                   messageId:
+ *                     type: integer
+ *                   content:
+ *                     type: string
+ *                   message:
+ *                     type: string
  */
 router.post('/:roomId/messages', requireAuth, postRoomMessage);
 
@@ -175,11 +259,11 @@ router.post('/:roomId/messages', requireAuth, postRoomMessage);
  * @swagger
  * /api/rooms/{roomId}/messages:
  *   get:
- *     summary: 채팅방 메시지 목록 조회
+ *     summary: room 채팅방 메시지 목록 조회
  *     tags:
  *       - Room
  *     security:
- *       - accessToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - name: roomId
  *         in: path
@@ -187,19 +271,6 @@ router.post('/:roomId/messages', requireAuth, postRoomMessage);
  *         schema:
  *           type: integer
  *         description: 채팅방 ID
- *       - name: limit
- *         in: query
- *         required: false
- *         schema:
- *           type: integer
- *         description: '조회할 메시지 수 (기본값: 50)'
- *       - name: before
- *         in: query
- *         required: false
- *         schema:
- *           type: string
- *           format: date-time
- *         description: 특정 시점 이전 메시지 조회
  *     responses:
  *       200:
  *         description: 메시지 목록 조회 성공
@@ -213,7 +284,29 @@ router.post('/:roomId/messages', requireAuth, postRoomMessage);
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Message'
+ *                     type: object
+ *                     properties:
+ *                       messageId:
+ *                         type: integer
+ *                         example: 1
+ *                       userId:
+ *                         type: integer
+ *                         example: 1
+ *                       nickname:
+ *                         type: string
+ *                         example: "user123"
+ *                       profileImage:
+ *                         type: string
+ *                         format: url
+ *                         example: "https://example.com/image.png"
+ *                       content:
+ *                         type: string
+ *                       messageType:
+ *                         type: string
+ *                         enum: [general, system]
+ *                       timestamp:
+ *                         type: string
+ *                         format: date-time
  */
 router.get('/:roomId/messages', requireAuth, getRoomMessages);
 

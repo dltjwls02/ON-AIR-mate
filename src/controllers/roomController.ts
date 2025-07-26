@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as roomService from '../services/roomServices';
 import * as messageService from '../services/messageServices';
-import { saveYoutubeVideo } from '../services/youtubeDetailService';
 import { sendSuccess, sendError } from '../utils/response.js';
 
 export const createRoom = async (req: Request, res: Response, next: NextFunction) => {
@@ -52,12 +51,13 @@ export const joinRoom = async (req: Request, res: Response, next: NextFunction) 
     console.log('roomId:', roomId, ', userId: ', userId, ', nickname: ', nickname);
 
     //방 존재하는지 체크
-    const isExisting = roomService.checkParticipant(roomId, userId);
-
-    if (!isExisting) {
-      //방 참가자 목록에 추가
-      roomService.addParticipant(roomId, { userId, nickname });
+    const isExisting = await roomService.checkParticipant(roomId, userId);
+    if (isExisting) {
+      return sendError(res, '이미 가입되어 있는 room입니다.', 409);
     }
+
+    //방 참가자 목록에 추가
+    roomService.addParticipant(roomId, { userId, nickname });
     //성공 응답
     sendSuccess(res, '방에 입장 가능합니다.', 201);
   } catch (error) {
@@ -122,10 +122,10 @@ export const getRoomMessages = async (req: Request, res: Response, next: NextFun
       return sendError(res, '유효한 roomId가 필요합니다.', 409);
     }
 
-    const limit = parseInt(req.query.limit as string, 10) || 50;
-    const before = req.query.before ? new Date(req.query.before as string) : undefined;
+    //const limit = parseInt(req.query.limit as string, 10) || 50;
+    //const before = req.query.before ? new Date(req.query.before as string) : undefined;
 
-    const messages = await messageService.getRoomMessages(roomId, limit, before);
+    const messages = await messageService.getRoomMessages(roomId);
 
     sendSuccess(res, messages, 201);
   } catch (error) {

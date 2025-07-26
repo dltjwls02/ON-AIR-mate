@@ -13,7 +13,7 @@ const router = express.Router();
  *     tags:
  *       - DirectMessage
  *     security:
- *       - accessToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - name: friendId
  *         in: path
@@ -36,7 +36,7 @@ const router = express.Router();
  *                 description: 메시지 내용
  *               messageType:
  *                 type: string
- *                 enum: [text, image, file]
+ *                 enum: [general, collectionShare, roomInvite]
  *                 description: 메시지 타입
  *     responses:
  *       201:
@@ -48,8 +48,19 @@ const router = express.Router();
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: true
  *                 data:
- *                   $ref: '#/components/schemas/Message'
+ *                   type: object
+ *                   properties:
+ *                     messageId:
+ *                       type: integer
+ *                       example: 123
+ *                     content:
+ *                       type: string
+ *                       example: "안녕 친구야!"
+ *                     message:
+ *                       type: string
+ *                       example: "채팅이 전송되었습니다."
  */
 router.post('/:friendId/message', requireAuth, postDirectMessage);
 
@@ -61,7 +72,7 @@ router.post('/:friendId/message', requireAuth, postDirectMessage);
  *     tags:
  *       - DirectMessage
  *     security:
- *       - accessToken: []
+ *       - bearerAuth: []
  *     parameters:
  *       - name: friendId
  *         in: path
@@ -69,19 +80,6 @@ router.post('/:friendId/message', requireAuth, postDirectMessage);
  *         description: 친구의 사용자 ID
  *         schema:
  *           type: integer
- *       - name: limit
- *         in: query
- *         required: false
- *         schema:
- *           type: integer
- *         description: '조회할 메시지 수 (기본값: 50)'
- *       - name: before
- *         in: query
- *         required: false
- *         schema:
- *           type: string
- *           format: date-time
- *         description: 특정 시점 이전 메시지 조회
  *     responses:
  *       200:
  *         description: 메시지 조회 성공

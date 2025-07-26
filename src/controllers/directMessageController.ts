@@ -18,6 +18,7 @@ export const postDirectMessage = async (req: Request, res: Response, next: NextF
       res,
       {
         messageId: message.messageId,
+        content: message.content,
         message: '채팅이 전송되었습니다.',
       },
       201,
