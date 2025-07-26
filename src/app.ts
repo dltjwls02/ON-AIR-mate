@@ -30,6 +30,8 @@ const corsOptions = {
     }
     console.log('start: 배포 연결 실행');
 
+    
+
     // 프로덕션 환경에서는 허용된 도메인만
     const allowedOrigins = [
       address,
