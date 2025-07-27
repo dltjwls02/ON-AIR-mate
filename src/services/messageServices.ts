@@ -114,7 +114,7 @@ export const getChatRoom = async (user1Id: number, user2Id: number) => {
     return existingChat;
   }
 
-  throw new Error('해당 hostId에 해당하는 유저가 존재하지 않습니다.');
+  throw new Error('해당 사용자들 간의 채팅방이 존재하지 않습니다.');
 };
 
 //채팅 메시지 저장

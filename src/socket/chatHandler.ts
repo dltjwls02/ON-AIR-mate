@@ -101,7 +101,7 @@ export default function chatHandler(io: Server, socket: Socket) {
 
   socket.on('disconnect', async () => {
     const userId = socket.data.user.id;
-    offlineUser(userId, socket.id);
+    await offlineUser(userId, socket.id);
   });
 
   //1:1 DM 방 입장
