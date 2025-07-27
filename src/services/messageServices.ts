@@ -100,6 +100,23 @@ export const getOrCreateChatRoom = async (user1Id: number, user2Id: number) => {
   });
 };
 
+//채팅방 단순 조회
+export const getChatRoom = async (user1Id: number, user2Id: number) => {
+  const [u1, u2] = user1Id < user2Id ? [user1Id, user2Id] : [user2Id, user1Id];
+
+  const existingChat = await prisma.userChat.findFirst({
+    where: {
+      user1Id: u1,
+      user2Id: u2,
+    },
+  });
+  if (existingChat) {
+    return existingChat;
+  }
+
+  throw new Error('해당 hostId에 해당하는 유저가 존재하지 않습니다.');
+};
+
 //채팅 메시지 저장
 export const saveDirectMessage = async (senderId: number, payload: SendDirectMessageDTO) => {
   const { receiverId, content, type } = payload;
@@ -137,7 +154,7 @@ export const saveDirectMessage = async (senderId: number, payload: SendDirectMes
 
 //채팅 내역 조회
 export const getDirectMessages = async (userId: number, receiverId: number) => {
-  const chat = await getOrCreateChatRoom(userId, receiverId);
+  const chat = await getChatRoom(userId, receiverId);
   const chatId = chat.chatId;
   const messages = await prisma.userChatMessage.findMany({
     where: {

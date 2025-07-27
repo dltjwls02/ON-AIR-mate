@@ -4,6 +4,7 @@ import {
   saveRoomMessage,
   saveDirectMessage,
   getOrCreateChatRoom,
+  getChatRoom,
 } from '../services/messageServices';
 import { chatMessageType, MessageType } from '../dtos/messageDto';
 
@@ -134,7 +135,7 @@ export default function chatHandler(io: Server, socket: Socket) {
         return;
       }
 
-      const dmRoom = await getOrCreateChatRoom(userId, receiverId);
+      const dmRoom = await getChatRoom(userId, receiverId);
       const dmId = dmRoom.chatId;
 
       //DB 저장
@@ -153,14 +154,14 @@ export default function chatHandler(io: Server, socket: Socket) {
   );
 
   //dm방 삭제 - 친구 해제
-  socket.on('noFriend', async (data: { userId1: number; userId2: number }) => {
+  socket.on('unFriend', async (data: { userId1: number; userId2: number }) => {
     try {
       const { userId1, userId2 } = data;
       if (!userId1 || !userId2) {
         socket.emit('error', { message: 'Required fields are missing.' });
         return;
       }
-      const dmRoom = await getOrCreateChatRoom(userId1, userId2);
+      const dmRoom = await getChatRoom(userId1, userId2);
       const dmId = dmRoom.chatId;
       socket.leave(dmId.toString());
       console.log(`친구 방 삭제 - ${dmId} 삭제 : ${userId1}, ${userId2}`);
