@@ -11,7 +11,10 @@ let io: Server;
 export const initSocketServer = (server: HTTPServer) => {
   io = new Server(server, {
     cors: {
-      origin: '*', // 필요 시 CORS 제한
+      origin:
+        process.env.NODE_ENV === 'development'
+          ? 'production'
+          : process.env.ALLOWED_ORIGINS?.split(',') || [],
       methods: ['GET', 'POST'],
     },
   });
@@ -37,20 +40,21 @@ export const initSocketServer = (server: HTTPServer) => {
     next(); // 다음 미들웨어 또는 연결 승인
   });
 
-  io.use((socket, next) => {
-    const rawUser = socket.handshake.auth.user;
-    if (!rawUser) return next(new Error('no user'));
-    socket.data.user = JSON.parse(rawUser);
-    next();
-  });
-
   const pubClient = new Redis({
     host: process.env.REDIS_HOST,
     port: Number(process.env.REDIS_PORT) || 6379,
     password: process.env.REDIS_PASSWORD,
   });
 
+  pubClient.on('error', err => {
+    console.error('Redis 연결 에러:', err);
+    process.exit(1);
+  });
+
   const subClient = pubClient.duplicate();
+  subClient.on('error', err => {
+    console.error('Redis 구독 클라이언트 에러:', err);
+  });
 
   io.adapter(createAdapter(pubClient, subClient));
   console.log('Redis adapter set');
@@ -58,7 +62,7 @@ export const initSocketServer = (server: HTTPServer) => {
   io.on('connection', socket => {
     const user = socket.data.user;
     console.log('🚀 유저 접속:', user.nickname, ', 소캣: ', socket.id);
-    onlineUser(user.id, socket.id);
+    onlineUser(Number(user.id), socket.id);
 
     chatHandler(io!, socket);
 

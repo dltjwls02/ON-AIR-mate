@@ -39,11 +39,16 @@ export default function chatHandler(io: Server, socket: Socket) {
   //기존 방 입장
   socket.on('enterRoom', async (data: { roomId: number; nickname: string }) => {
     const { roomId, nickname } = data;
-    if (!nickname || !roomId) throw new Error('Required fields are missing.');
+    if (!nickname || !roomId) {
+      socket.emit('error', { message: 'Required fields are missing.' });
+      return;
+    }
 
     const isIn = await isParticipant(Number(roomId), Number(userId));
-    if (!isIn) throw new Error('Not participant in this room');
-
+    if (!isIn) {
+      socket.emit('error', { message: 'Not participant in this room' });
+      return;
+    }
     //해당 소캣이 room에 join함
     socket.join(roomId.toString());
     console.log('!!entered room:', roomId);
@@ -56,10 +61,16 @@ export default function chatHandler(io: Server, socket: Socket) {
     'sendRoomMessage',
     async (data: { roomId: number; nickname: string; content: string; messageType: string }) => {
       const { roomId, nickname, content, messageType } = data;
-      if (!roomId || !nickname || !content || !messageType) return;
+      if (!roomId || !nickname || !content || !messageType) {
+        socket.emit('error', { message: 'Required fields are missing.' });
+        return;
+      }
 
       const isIn = await isParticipant(roomId, Number(userId));
-      if (!isIn) throw new Error('Not participant in this room');
+      if (!isIn) {
+        socket.emit('error', { message: 'Not participant in this room' });
+        return;
+      }
 
       //db 저장
       const message = await saveRoomMessage({
@@ -78,7 +89,7 @@ export default function chatHandler(io: Server, socket: Socket) {
   //room 퇴장
   socket.on('leaveRoom', async (roomId: number) => {
     try {
-      await leaveRoom(roomId, userId);
+      await leaveRoom(roomId, Number(userId));
       socket.leave(roomId.toString());
       io.to(roomId.toString()).emit('userLeft', { userId, socketId: socket.id });
     } catch (err) {
@@ -94,7 +105,10 @@ export default function chatHandler(io: Server, socket: Socket) {
 
   //1:1 DM 방 입장
   socket.on('joinDM', async (receiverId: number) => {
-    if (!receiverId) throw new Error('Required fields are missing.');
+    if (!receiverId) {
+      socket.emit('error', { message: 'Required fields are missing.' });
+      return;
+    }
 
     const dmRoom = await getOrCreateChatRoom(userId, receiverId);
     const dmId = dmRoom.chatId;
@@ -115,7 +129,10 @@ export default function chatHandler(io: Server, socket: Socket) {
       messageType: string;
     }) => {
       const { receiverId, fromNickname, content, messageType } = data;
-      if (!receiverId || !content || !fromNickname || !messageType) return;
+      if (!receiverId || !content || !fromNickname || !messageType) {
+        socket.emit('error', { message: 'Required fields are missing.' });
+        return;
+      }
 
       const dmRoom = await getOrCreateChatRoom(userId, receiverId);
       const dmId = dmRoom.chatId;
@@ -139,6 +156,10 @@ export default function chatHandler(io: Server, socket: Socket) {
   socket.on('noFriend', async (data: { userId1: number; userId2: number }) => {
     try {
       const { userId1, userId2 } = data;
+      if (!userId1 || !userId2) {
+        socket.emit('error', { message: 'Required fields are missing.' });
+        return;
+      }
       const dmRoom = await getOrCreateChatRoom(userId1, userId2);
       const dmId = dmRoom.chatId;
       socket.leave(dmId.toString());

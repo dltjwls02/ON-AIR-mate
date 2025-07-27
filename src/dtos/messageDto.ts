@@ -8,7 +8,7 @@ export interface SaveRoomMessageInput {
   messageType: MessageType;
 }
 
-export interface roomMessageDTO {
+export interface RoomMessageDTO {
   messageId: number;
   userId: number;
   profileImage: string;
@@ -23,7 +23,7 @@ export interface SendDirectMessageDTO {
   type?: chatMessageType; // 등등 필요에 따라 추가
 }
 
-export interface directMessageDTO {
+export interface DirectMessageDTO {
   messageId: number;
   senderId: number;
   receiverId: number;

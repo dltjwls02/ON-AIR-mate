@@ -22,7 +22,7 @@ export const onlineUser = async (userId: number, socketId: string) => {
 };
 
 export const offlineUser = async (userId: number, socketId: string) => {
-  await redis.hset(USER_STATUS_KEY(userId), 'status', 'offline');
+  await redis.set(USER_STATUS_KEY(userId), 'offline');
   await redis.del(USER_SOCKET_KEY(userId));
   await redis.del(SOCKET_USER_KEY(socketId));
 };
@@ -60,7 +60,7 @@ export const getUserIdFromSocket = async (socketId: string): Promise<number> => 
 };
 
 export const isParticipant = async (roomId: number, userId: number): Promise<boolean> => {
-  const key = `room:${roomId}:participants`;
+  const key = ROOM_PARTICIPANTS_KEY(roomId);
   const result = await redis.sismember(key, userId);
   return result === 1;
 };

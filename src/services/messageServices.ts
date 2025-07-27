@@ -1,6 +1,5 @@
-import { PrismaClient, RoomMessage, UserChatMessage } from '@prisma/client';
-import { SaveRoomMessageInput, SendDirectMessageDTO, roomMessageDTO } from '../dtos/messageDto';
-import { findUserById } from '../services/authServices';
+import { PrismaClient, UserChatMessage } from '@prisma/client';
+import { SaveRoomMessageInput, SendDirectMessageDTO, RoomMessageDTO } from '../dtos/messageDto';
 
 const prisma = new PrismaClient();
 
@@ -26,14 +25,12 @@ export const getRoomMessages = async (roomId: number) => {
   });
 
   const result = await Promise.all(
-    messages.reverse().map(async (msg: RoomMessage) => {
-      const member = await findUserById(msg.userId); // 사용자 정보 가져오기
-
+    messages.reverse().map(async msg => {
       return {
         messageId: msg.messageId,
         userId: msg.userId,
-        nickname: member?.nickname,
-        profileImage: member?.profileImage,
+        nickname: msg.user.nickname,
+        profileImage: msg.user.profileImage,
         content: msg.content,
         messageType: msg.type,
         timestamp: msg.createdAt.toISOString(),
@@ -67,15 +64,15 @@ export const saveRoomMessage = async ({
       },
     },
   });
-  const user = await findUserById(userId);
+
   const roomMessageDTO = {
     messageId: message.messageId, // Prisma 모델에서 메시지 PK
     userId: message.userId,
-    profileImage: user?.profileImage ?? '',
+    profileImage: message.user.profileImage ?? '',
     content: message.content,
     messageType: message.type,
     timestamp: message.createdAt,
-  } satisfies roomMessageDTO;
+  } satisfies RoomMessageDTO;
   return roomMessageDTO;
 };
 
@@ -139,7 +136,7 @@ export const saveDirectMessage = async (senderId: number, payload: SendDirectMes
 };
 
 //채팅 내역 조회
-export const getDiriectMessages = async (userId: number, receiverId: number) => {
+export const getDirectMessages = async (userId: number, receiverId: number) => {
   const chat = await getOrCreateChatRoom(userId, receiverId);
   const chatId = chat.chatId;
   const messages = await prisma.userChatMessage.findMany({

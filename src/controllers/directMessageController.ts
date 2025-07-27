@@ -6,7 +6,7 @@ export const postDirectMessage = async (req: Request, res: Response, next: NextF
   try {
     const { content, messageType } = req.body;
     const receiverId = Number(req.params.friendId);
-    const userId = Number(req.user?.id);
+    const userId = Number(req.user?.userId);
 
     const message = await messageService.saveDirectMessage(userId, {
       receiverId,
@@ -31,12 +31,17 @@ export const postDirectMessage = async (req: Request, res: Response, next: NextF
 export const getDirectMessage = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const receiverId = Number(req.params.friendId);
-    const userId = Number(req.user?.id);
+    const userId = Number(req.user?.userId);
+
+    if (isNaN(userId)) {
+      return sendError(res, '유저 인증에 실패했습니다.', 409);
+    }
+
     if (isNaN(receiverId)) {
       return sendError(res, '친구가 아닙니다.', 409);
     }
 
-    const messages = await messageService.getDiriectMessages(userId, receiverId);
+    const messages = await messageService.getDirectMessages(userId, receiverId);
 
     sendSuccess(res, messages, 201);
   } catch (error) {

@@ -1,7 +1,6 @@
 import { PrismaClient, RoomParticipant } from '@prisma/client';
 import { Participant, createNewRoom } from '../dtos/roomDto.js';
 import { findUserById } from './authServices';
-import { error } from 'console';
 
 const prisma = new PrismaClient();
 
@@ -122,7 +121,7 @@ export const addParticipant = async (roomId: number, participant: Participant) =
   });
   if (!room) {
     console.log('존재하지 않은 room입니다.');
-    throw error('존재하지 않은 room입니다.');
+    throw new Error('존재하지 않은 room입니다.');
   }
 
   //roomParicipant DB 등록

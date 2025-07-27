@@ -19,7 +19,13 @@ dotenv.config();
 
 const app: Express = express();
 const server = createServer(app);
-initSocketServer(server); // socket.io 연결
+
+try {
+  initSocketServer(server); // socket.io 연결
+} catch (error) {
+  console.error('Socket.IO 서버 초기화 실패:', error);
+  process.exit(1);
+}
 
 const port = process.env.PORT || 3000;
 const address = process.env.ADDRESS;

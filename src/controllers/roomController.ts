@@ -7,7 +7,7 @@ export const createRoom = async (req: Request, res: Response, next: NextFunction
   try {
     const { roomName, isPublic, maxParticipants, videoId } = req.body;
     const hostId = req.user?.userId;
-    console.log('user:', req.user?.id, ', ', req.user?.nickname);
+    console.log('user:', req.user?.userId, ', ', req.user?.nickname);
 
     //유튜브 비디오에 대한 정보 받아와야함.
     if (!videoId) {
@@ -57,7 +57,7 @@ export const joinRoom = async (req: Request, res: Response, next: NextFunction) 
     }
 
     //방 참가자 목록에 추가
-    roomService.addParticipant(roomId, { userId, nickname });
+    await roomService.addParticipant(roomId, { userId, nickname });
     //성공 응답
     sendSuccess(res, '방에 입장 가능합니다.', 201);
   } catch (error) {
@@ -68,14 +68,14 @@ export const joinRoom = async (req: Request, res: Response, next: NextFunction) 
 export const leaveRoom = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const roomId = Number(req.params.roomId);
-    const userId = Number(req.user?.id);
-    const isExisting = roomService.checkParticipant(roomId, userId);
+    const userId = Number(req.user?.userId);
+    const isExisting = await roomService.checkParticipant(roomId, userId);
 
     if (!isExisting) {
       return sendError(res, 'room에 소속되어 있지 않습니다.', 409);
     }
 
-    const message = roomService.outRoom(roomId, userId);
+    const message = await roomService.outRoom(roomId, userId);
 
     sendSuccess(res, message, 201);
   } catch (error) {
@@ -98,7 +98,8 @@ export const postRoomMessage = async (req: Request, res: Response, next: NextFun
   try {
     const { content, messageType } = req.body;
     const roomId = Number(req.params.roomId);
-    const userId = Number(req.user?.id);
+    const userId = Number(req.user?.userId);
+    console.log(`userId: ${userId}`);
 
     const message = await messageService.saveRoomMessage({ roomId, userId, content, messageType });
 
