@@ -139,6 +139,11 @@ export default function chatHandler(io: Server, socket: Socket) {
       const dmId = dmRoom.chatId;
 
       //DB 저장
+      const validMessageTypes = ['general', 'collectionShare', 'roomInvite'];
+      if (!validMessageTypes.includes(messageType)) {
+        socket.emit('error', { message: 'Invalid message type' });
+        return;
+      }
       const message = await saveDirectMessage(userId, {
         receiverId,
         content,
