@@ -20,7 +20,7 @@ export default function chatHandler(io: Server, socket: Socket) {
   socket.on('joinRoom', async (data: { roomId: number; nickname: string }) => {
     const { roomId, nickname } = data;
     if (!roomId || !nickname) {
-      socket.emit('error', 'roomId and nickname required');
+      socket.emit('error', {message:'roomId and nickname required'});
       return;
     }
     //입장
