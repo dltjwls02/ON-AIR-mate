@@ -73,7 +73,7 @@ export const getRecentNotis = async (userId: number) => {
       notificationId: noti.notificationId,
       type: noti.type,
       message: noti.title,
-      isRead: noti.status==='read',
+      isRead: noti.status === 'read',
       createdAt: noti.createdAt,
     };
 
