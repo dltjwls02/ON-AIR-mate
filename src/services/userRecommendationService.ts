@@ -43,13 +43,13 @@ export class RecommendationService {
 
     //인기도 상승에 따른 알림 생성
     await prisma.notification.create({
-    data: {
-      fromUserId: userId,
-      toUserId: dto.targetUserId,
-      type: 'popularityUp',
-      title: `인기도가 1 상승하였습니다.`,
-    },
-  },);
+      data: {
+        fromUserId: userId,
+        toUserId: dto.targetUserId,
+        type: 'popularityUp',
+        title: `인기도가 1 상승하였습니다.`,
+      },
+    });
 
     return {
       success: true,

@@ -12,6 +12,16 @@ interface Notification {
   status: 'unread' | 'read';
 }
 
+type resNotification = {
+  notificationId: number | null;
+  type: 'roomInvite' | 'collectionShare' | 'friendRequest' | 'popularityUp' | null;
+  fromUserId?: number;
+  fromUserNickname?: string;
+  message: string | null;
+  isRead: boolean;
+  createdAt: Date;
+};
+
 /**
  * 알림 생성
  */
@@ -63,30 +73,22 @@ export const getRecentNotis = async (userId: number) => {
   });
 
   // 분류
-  const today: any[] = [];
-  const yesterday: any[] = [];
-  const recent7Days: any[] = [];
+  const today: resNotification[] = [];
+  const yesterday: resNotification[] = [];
+  const recent7Days: resNotification[] = [];
 
   for (const noti of notifications) {
     const createdAt = new Date(noti.createdAt);
-    const base = {
+    const fullData: resNotification = {
       notificationId: noti.notificationId,
       type: noti.type,
       message: noti.title,
       isRead: noti.status === 'read',
       createdAt: noti.createdAt,
-    };
-
-    const fromUserData = noti.fromUser
-      ? {
-          fromUserId: noti.fromUser.userId,
-          fromUserNickname: noti.fromUser.nickname,
-        }
-      : {};
-
-    const fullData = {
-      ...base,
-      ...fromUserData,
+      ...(noti.fromUser && {
+        fromUserId: noti.fromUser.userId,
+        fromUserNickname: noti.fromUser.nickname,
+      }),
     };
 
     if (dayjs(createdAt).isAfter(todayStart)) {
