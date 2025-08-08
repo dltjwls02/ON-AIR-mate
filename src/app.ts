@@ -1,5 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
+import friendRoutes from './routes/friendRoutes.js';
 import cors from 'cors';
 import errorHandler from './middleware/errors/errorHandler.js';
 import AppError from './middleware/errors/AppError.js';
@@ -15,8 +16,8 @@ import { initSocketServer } from './socket/index.js';
 import aiSummaryRoutes from './routes/aiSummaryRoutes.js';
 import roomRoutes from './routes/roomRoute.js';
 import chatDirectRoutes from './routes/chatDirectRoute.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 import sharedCollectionRoute from './routes/sharedCollectionRoute.js';
-import blockRoutes from './routes/blockRoute.js';
 dotenv.config();
 
 const app: Express = express();
@@ -145,7 +146,6 @@ app.use('/api/chat/direct', chatDirectRoutes);
 app.use('/api/youtube', youtubeRoutes); // youtubeRecommendationRoute와 youtubeSearchRoute 병합
 app.use('/api/shared-collections', sharedCollectionRoute);
 app.use('/api/ai', aiSummaryRoutes);
-app.use('/api/blocks', blockRoutes);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
