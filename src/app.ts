@@ -149,7 +149,6 @@ app.use('/api/ai', aiSummaryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/friends', friendRoutes);
 
-
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
   console.error('app.ts에서 404 에러 발생:', req.originalUrl);
