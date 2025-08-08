@@ -5,7 +5,7 @@ import {
   getRecentNotis,
   countUnreadNotifications,
   markNotificationAsRead,
-} from '../services/notificationService';
+} from '../services/notificationService.js';
 
 export const getRecentNotifications = async (req: Request, res: Response, next: NextFunction) => {
   try {
