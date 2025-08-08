@@ -97,7 +97,7 @@ router.get('/unread-count', requireAuth, getUnReadNotificationNum);
  *                 success:
  *                   type: boolean
  *                   example: true
- *                 messages:
+ *                 message:
  *                   type: string
  *                   example: "모든 알림이 읽음 처리되었습니다."
  *       401:
