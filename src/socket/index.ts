@@ -11,7 +11,6 @@ export const initSocketServer = async (server: HTTPServer) => {
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
-    'https://29d0611ca9f9.ngrok-free.app', // ✅ ngrok 주소
     'http://54.180.254.48:3000',
   ];
   io = new Server(server, {
