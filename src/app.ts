@@ -25,16 +25,11 @@ const app: Express = express();
 const server = createServer(app);
 
 try {
-  initSocketServer(server); // socket.io 연결
+  await initSocketServer(server); // socket.io 연결
 } catch (error) {
   console.error('Socket.IO 서버 초기화 실패:', error);
   process.exit(1);
 }
-
-//Redis 연결 확인
-redis.on('connect', () => {
-  console.log('🔗 Redis connected');
-});
 
 (async () => {
   try {
@@ -162,6 +157,7 @@ app.use('/api/youtube', youtubeRoutes); // youtubeRecommendationRoute와 youtube
 app.use('/api/shared-collections', sharedCollectionRoute);
 app.use('/api/friends', friendRoutes);
 app.use('/api/ai', aiSummaryRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
