@@ -13,12 +13,12 @@ import swaggerUi from 'swagger-ui-express';
 import { specs } from './swagger.js';
 import { createServer } from 'http';
 import { initSocketServer } from './socket/index.js';
+import redis from './redis.js';
 import aiSummaryRoutes from './routes/aiSummaryRoutes.js';
 import roomRoutes from './routes/roomRoute.js';
 import chatDirectRoutes from './routes/chatDirectRoute.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import sharedCollectionRoute from './routes/sharedCollectionRoute.js';
-import collectionRoutes from './routes/collectionRoutes.js';
 dotenv.config();
 
 const app: Express = express();
@@ -30,6 +30,20 @@ try {
   console.error('Socket.IO 서버 초기화 실패:', error);
   process.exit(1);
 }
+
+//Redis 연결 확인
+redis.on('connect', () => {
+  console.log('🔗 Redis connected');
+});
+
+(async () => {
+  try {
+    const pong = await redis.ping();
+    console.log('🏓 Redis PING response:', pong);
+  } catch (err) {
+    console.error('🔥 Redis PING failed:', err);
+  }
+})();
 
 const port = process.env.PORT || 3000;
 const address = process.env.ADDRESS;
@@ -146,10 +160,8 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/chat/direct', chatDirectRoutes);
 app.use('/api/youtube', youtubeRoutes); // youtubeRecommendationRoute와 youtubeSearchRoute 병합
 app.use('/api/shared-collections', sharedCollectionRoute);
-app.use('/api/ai', aiSummaryRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/collections', collectionRoutes);
 app.use('/api/friends', friendRoutes);
+app.use('/api/ai', aiSummaryRoutes);
 
 // 404 에러 핸들링
 app.use((req: Request, res: Response, next: NextFunction) => {
