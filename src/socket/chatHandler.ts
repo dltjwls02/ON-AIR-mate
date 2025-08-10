@@ -146,10 +146,10 @@ export default function chatHandler(io: Server, socket: Socket) {
 
       console.log(`[ROOM ${roomId}] Settings updated by owner ${userId}`);
 
-      socket.emit('success', { type: 'updateRoomSettings', message: '방 퇴장 성공' });
+      socket.emit('success', { type: 'updateRoomSettings', message: '방 설정 성공' });
     } catch (error) {
       console.log('[Socket] sendRoomMessage 소캣 통신에러:', error);
-      socket.emit('error', { type: 'updateRoomSettings', message: '방 채팅 실패' });
+      socket.emit('error', { type: 'updateRoomSettings', message: '방 설정 실패' });
     }
   });
 

@@ -3,6 +3,7 @@ import { saveDirectMessage, getChatRoom } from './messageServices.js';
 import { getIO } from '../socket/index.js';
 import redis from '../redis';
 import { USER_SOCKET_KEY } from '../socket/redisManager.js';
+import AppError from '../middleware/errors/AppError.js';
 
 export const shareCollectionService = async (
   senderId: number,
@@ -121,12 +122,32 @@ export const copyCollectionService = async (receiverId: number, collectionId: nu
   const collection = await prisma.collection.findUnique({
     where: { collectionId },
   });
-  if (!collection) throw new Error('컬렉션이 존재하지 않습니다.');
+
+  if (!collection) throw new AppError('COLLECTION_001', '컬렉션을 찾을 수 없습니다.');
+
+  if (collection.userId !== receiverId) {
+    if (collection.visibility === 'private') {
+      throw new AppError('COLLECTION_003', '비공개 컬렉션에 접근할 권한이 없습니다.');
+    }
+    if (collection.visibility === 'friends') {
+      const friendship = await prisma.friendship.findFirst({
+        where: {
+          status: 'accepted',
+          OR: [
+            { requestedBy: receiverId, requestedTo: collection.userId },
+            { requestedBy: collection.userId, requestedTo: receiverId },
+          ],
+        },
+      });
+      if (!friendship) {
+        throw new AppError('COLLECTION_003', '친구만 접근할 수 있는 컬렉션입니다.');
+      }
+    }
+  }
 
   const newCollection = await prisma.collection.create({
     data: {
       userId: receiverId,
-      collectionId: collection.collectionId,
       title: collection.title,
       description: collection.description,
       bookmarkCount: collection.bookmarkCount,

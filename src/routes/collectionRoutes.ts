@@ -114,7 +114,7 @@ router.get('/:collectionId', requireAuth, collectionController.getCollectionDeta
  *     summary: 컬렉션을 친구에게 공유
  *     description: 지정한 컬렉션을 여러 친구에게 공유합니다.
  *     tags:
- *       - wow
+ *       - Collections
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -174,7 +174,7 @@ router.post('/:collectionId/share', requireAuth, shareCollectionController);
  *     summary: 친구의 컬렉션을 내 라운지로 가져오기
  *     description: 친구가 공유한 컬렉션을 내 컬렉션 라운지로 복사합니다.
  *     tags:
- *       - wow
+ *       - Collections
  *     security:
  *       - bearerAuth: []
  *     parameters:
