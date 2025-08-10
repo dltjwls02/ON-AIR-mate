@@ -89,6 +89,14 @@ export default function chatHandler(io: Server, socket: Socket) {
           });
           return;
         }
+        const validRoomMessageTypes: MessageType[] = ['general', 'system'];
+        if (!validRoomMessageTypes.includes(messageType as MessageType)) {
+          socket.emit('error', {
+            type: 'sendRoomMessage',
+            message: 'Invalid messageType (messageType must be general or system)',
+          });
+          return;
+        }
 
         const isIn = await isParticipant(roomId, Number(userId));
         if (!isIn) {
@@ -249,4 +257,8 @@ export default function chatHandler(io: Server, socket: Socket) {
       socket.emit('error', { type: 'unFriend', message: 'Failed to leave room' });
     }
   });
+
+  /**
+   * 북마크 공유
+   */
 }

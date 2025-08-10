@@ -64,14 +64,19 @@ export const joinRoom = async (roomId: number, userId: number, socketId: string)
 
 export const enterRoom = async (userId: number, socketId: string) => {
   console.log('[Redis] enterRoom 이벤트 처리');
-  await redis.set(USER_SOCKET_KEY(userId), socketId, 'NX'); // NX = Only if not exists
-  await redis.set(SOCKET_USER_KEY(socketId), userId.toString(), 'NX');
+  //회원 찾기
+  const roomId = await getUserRooms(userId);
+  if (!roomId) {
+    throw new Error('[Redis] ROOM_PARTICIPANTS 조회 실패');
+  }
+  await redis.set(USER_SOCKET_KEY(userId), socketId);
+  await redis.set(SOCKET_USER_KEY(socketId), userId.toString());
 };
 
 export const leaveRoom = async (roomId: number, userId: number) => {
   console.log('[Redis] leaveRoom 이벤트 처리');
-  await redis.srem(ROOM_PARTICIPANTS_KEY(roomId), userId);
-  await redis.decr(ROOM_PARTICIPANTS_COUNT_KEY(roomId));
+  const removed = await redis.srem(ROOM_PARTICIPANTS_KEY(roomId), userId);
+  if (removed === 1) await redis.decr(ROOM_PARTICIPANTS_COUNT_KEY(roomId));
   await redis.srem(USER_ROOMS_KEY(userId), roomId.toString());
 };
 
@@ -86,6 +91,12 @@ export const getUserIdFromSocket = async (socketId: string): Promise<number> => 
   const userId = await redis.get(SOCKET_USER_KEY(socketId));
   return userId ? parseInt(userId, 10) : 0;
 };
+
+async function getUserRooms(userId: number) {
+  const key = USER_ROOMS_KEY(userId);
+  const rooms = await redis.smembers(key); // SET에 저장된 모든 roomId 가져오기
+  return rooms; // string[] 형태로 반환
+}
 
 export const isParticipant = async (roomId: number, userId: number): Promise<boolean> => {
   console.log('[Redis] isParticipant 이벤트 처리');

@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js';
+import AppError from '../middleware/errors/AppError.js';
 import { tryParseBookmarkMessage } from '../utils/parseBookmark.js';
 
 // 1. 북마크 생성 서비스
@@ -19,10 +20,10 @@ export const createBookmark = async (
 };
 
 //1-1. 소캣에서 북마크 생성하기
-export const createBookmarkfromSocket = async (userId: number, roomId: number, message: string) => {
+export const createBookmarkFromSocket = async (userId: number, roomId: number, message: string) => {
   const result = tryParseBookmarkMessage(message);
   if (!result) {
-    throw new Error('메시지에서 유효한 타임라인을 찾을 수 없습니다.');
+    throw new AppError('CHAT_003', '메시지에서 유효한 타임라인을 찾을 수 없습니다.');
   }
   const { timeline, content } = result;
   console.log(`북마크 파싱 성공: ${timeline}`);

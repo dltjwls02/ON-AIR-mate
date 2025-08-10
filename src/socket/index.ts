@@ -12,6 +12,7 @@ export const initSocketServer = async (server: HTTPServer) => {
     'http://localhost:3000',
     'http://localhost:3001',
     'http://54.180.254.48:3000',
+    'https://onairmate.duckdns.org',
   ];
   io = new Server(server, {
     cors: {
@@ -58,8 +59,8 @@ export const initSocketServer = async (server: HTTPServer) => {
 
     chatHandler(io!, socket);
 
-    socket.on('disconnect', () => {
-      offlineUser(socket.data.user.id, socket.id);
+    socket.on('disconnect', async () => {
+      await offlineUser(Number(socket.data.user.id), socket.id);
       console.log('❌[Socket] 연결 해제:', socket.id);
     });
   });
