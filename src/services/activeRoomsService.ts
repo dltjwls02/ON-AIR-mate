@@ -128,7 +128,7 @@ export class ActiveRoomService {
 
       // userRooms의 roomId 목록을 Set으로 만들어서 빠르게 체크할 수 있게 함
       const userRoomIds = new Set(userRooms.map(ur => ur.room.roomId));
-      console.log("유저 참여방:",userRoomIds);
+      console.log('유저 참여방:', userRoomIds);
 
       // onAirRooms에서 userRoomIds에 포함된 방 제외
       onAirRooms = onAirRooms.filter(room => !userRoomIds.has(room.roomId));

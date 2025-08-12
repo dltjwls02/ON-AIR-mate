@@ -148,7 +148,7 @@ export const removeParticipant = async (roomId: number, userId: number) => {
   await prisma.roomParticipant.update({
     where: { participantId: userId },
     data: {
-      left_at: new Date(),  // 현재 시간 기록
+      left_at: new Date(), // 현재 시간 기록
     },
   });
 
