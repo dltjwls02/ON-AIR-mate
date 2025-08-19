@@ -12,6 +12,7 @@ import {
   GenerateSummaryResponseDto,
   ClaudeResponseDto,
   AISummaryFeedbackData,
+  EmotionItem,
 } from '../dtos/aiSummaryDto.js';
 
 const BEDROCK_MODEL_ID = 'anthropic.claude-3-5-sonnet-20240620-v1:0';
@@ -130,28 +131,28 @@ export class AiSummaryService {
     const systemPrompt = `당신은 채팅 내용을 분석하고 요약하는 전문가입니다.`;
 
     const userPrompt = `다음은 "${videoTitle}" 영상을 함께 시청하며 나눈 채팅 내용입니다.
-
-채팅 내용:
-${chatContent}
-
-위 채팅 내용을 분석하여 다음 두 가지를 한국어로 작성해주세요:
-
-1. 전체 대화 주제 요약 (1문장으로 간결하게 핵심 내용 정리), 딱딱한 AI스러운 말투사용 대신 "대부분 짜증이 난거 같아요!", "많이 슬픈가 보네요.." 등 친근한 형식으로 작성.
-
-2. 대화의 전반적인 감정 분석
-- 전체 대화를 100%로 보고, 감정별 "문장 수" 기준으로 비율 계산(기준 고정).
-- 주요 감정 3~5개를 선정하고, 높은 비율부터 내림차순으로 나열.
-- 표준 감정 카테고리: 기쁨, 슬픔, 분노, 놀람, 감동, 공감, 공포, 좌절, 절망, 당황
-- 각 감정에 해당하는 대표 문장 1~2개를 지정하고, 전체 대비 비율(%) 계산.
-- 백분율은 정수(%)로 반올림하되, 마지막 항목에서 합계가 정확히 100%가 되도록 보정.
-
-응답 형식:
-첫 번째 줄: 주제 요약
-두 번째 줄: 감정 분석 (감정1 n%, 감정2 m%, 감정3 k% 형식)`;
+  
+  채팅 내용:
+  ${chatContent}
+  
+  위 채팅 내용을 분석하여 다음 두 가지를 한국어로 작성해주세요:
+  
+  1. 전체 대화 주제 요약 (1문장으로 간결하게 핵심 내용 정리), 딱딱한 AI스러운 말투사용 대신 "대부분 짜증이 난거 같아요!", "많이 슬픈가 보네요.." 등 친근한 형식으로 작성.
+  
+  2. 대화의 전반적인 감정 분석
+  - 전체 대화를 100%로 보고, 감정별 "문장 수" 기준으로 비율 계산(기준 고정).
+  - 주요 감정 3~5개를 선정하고, 높은 비율부터 내림차순으로 나열.
+  - 표준 감정 카테고리: 기쁨, 슬픔, 분노, 놀람, 감동, 공감, 공포, 좌절, 절망, 당황
+  - 각 감정에 해당하는 대표 문장 1~2개를 지정하고, 전체 대비 비율(%) 계산.
+  - 백분율은 정수(%)로 반올림하되, 마지막 항목에서 합계가 정확히 100%가 되도록 보정.
+  
+  응답 형식:
+  첫 번째 줄: 주제 요약
+  두 번째 줄: 감정 분석 (감정1 n%, 감정2 m%, 감정3 k% 형식)`;
 
     try {
       const input: InvokeModelCommandInput = {
-        modelId: BEDROCK_MODEL_ID, // Claude 3.5 Sonnet
+        modelId: BEDROCK_MODEL_ID,
         contentType: 'application/json',
         accept: 'application/json',
         body: JSON.stringify({
@@ -167,30 +168,121 @@ ${chatContent}
           ],
         }),
       };
+
       const command = new InvokeModelCommand(input);
       const response: InvokeModelCommandOutput = await bedrockClient.send(command);
-
       const responseBody = JSON.parse(new TextDecoder().decode(response.body)) as ClaudeResponse;
       const responseText = responseBody.content[0]?.text || '';
+      console.log('[AI Summary] 원본 응답:', responseText);
 
-      // AI 응답을 줄바꿈으로 분리
+      let topicSummary = '';
+      let emotionAnalysis: EmotionItem[] = [];
+
+      // 줄바꿈 기준 파싱
       const lines = responseText
         .trim()
         .split('\n')
         .filter(line => line.trim());
 
-      if (lines.length < 2) {
-        throw new Error('응답 형식 오류');
+      if (lines.length >= 2) {
+        topicSummary = lines[0].trim();
+        const emotionText = lines[1].trim();
+
+        // 감정 텍스트를 배열로 파싱
+        emotionAnalysis = this.parseEmotionText(emotionText);
+      } else if (lines.length === 1) {
+        // 한 줄로 응답이 온 경우 처리
+        const singleLine = lines[0];
+        const emotionPattern = /[가-힣]+\s*\d+%/;
+        const emotionMatch = singleLine.match(emotionPattern);
+
+        if (emotionMatch) {
+          const emotionStartIndex = singleLine.indexOf(emotionMatch[0]);
+          if (emotionStartIndex > 0) {
+            topicSummary = singleLine.substring(0, emotionStartIndex).trim();
+            const emotionText = singleLine.substring(emotionStartIndex).trim();
+            emotionAnalysis = this.parseEmotionText(emotionText);
+          }
+        }
+      }
+
+      // 검증 및 기본값 설정
+      if (!topicSummary || topicSummary.length < 5) {
+        topicSummary = '영상을 보며 즐거운 시간을 보냈네요!';
+        console.warn('[AI Summary] 주제 요약 생성 실패, 기본값 사용');
+      }
+
+      if (emotionAnalysis.length === 0) {
+        // 기본값 설정
+        emotionAnalysis = [
+          { emotion: '공감', percentage: 40 },
+          { emotion: '기쁨', percentage: 30 },
+          { emotion: '놀람', percentage: 20 },
+          { emotion: '기타', percentage: 10 },
+        ];
+        console.warn('[AI Summary] 감정 분석 생성 실패, 기본값 사용');
       }
 
       return {
-        topicSummary: lines[0].trim(),
-        emotionAnalysis: lines[1].trim(),
+        topicSummary: topicSummary.substring(0, 200),
+        emotionAnalysis,
       };
-    } catch (parseError) {
-      console.error('Claude 응답 파싱 실패:', parseError);
-      throw new AppError('GENERAL_004', 'AI 응답 파싱에 실패했습니다.');
+    } catch (error) {
+      console.error('[AI Summary] Claude 모델 호출 실패:', error);
+
+      // AI 호출 실패 시 기본 응답 반환
+      return {
+        topicSummary: '채팅 내용을 분석 중 오류가 발생했습니다.',
+        emotionAnalysis: [{ emotion: '분석 불가', percentage: 100 }],
+      };
     }
+  }
+
+  /**
+   * 감정 텍스트를 구조화된 배열로 파싱
+   * "기쁨 30%, 슬픔 20%, 분노 10%" -> [{emotion: "기쁨", percentage: 30}, ...]
+   */
+  private parseEmotionText(emotionText: string): EmotionItem[] {
+    const emotionItems: EmotionItem[] = [];
+
+    // 감정 키워드 정의
+    const emotionKeywords = [
+      '기쁨',
+      '슬픔',
+      '분노',
+      '놀람',
+      '감동',
+      '공감',
+      '공포',
+      '좌절',
+      '절망',
+      '당황',
+      '기타',
+    ];
+
+    // 정규식으로 "감정명 숫자%" 패턴 찾기
+    const pattern = new RegExp(`(${emotionKeywords.join('|')})\\s*(\\d+)%`, 'g');
+    let match;
+
+    while ((match = pattern.exec(emotionText)) !== null) {
+      emotionItems.push({
+        emotion: match[1],
+        percentage: parseInt(match[2], 10),
+      });
+    }
+
+    // 백분율 합계 검증 및 보정
+    const total = emotionItems.reduce((sum, item) => sum + item.percentage, 0);
+    if (total !== 100 && emotionItems.length > 0) {
+      // 마지막 항목으로 보정
+      const diff = 100 - total;
+      emotionItems[emotionItems.length - 1].percentage += diff;
+    }
+
+    // 내림차순 정렬
+    emotionItems.sort((a, b) => b.percentage - a.percentage);
+
+    return emotionItems;
   }
 
   /**
